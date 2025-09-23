@@ -374,7 +374,7 @@ ORDER BY (ㄱ) (ㄷ);
 ~~~
 (ㄱ): COUNT(id) AS pokemon_cnt
 (ㄴ): GROUP BY
-(ㄷ): ASC
+(ㄷ): DESC
 ~~~
 
 
