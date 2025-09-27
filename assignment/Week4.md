@@ -56,6 +56,11 @@
 
 <!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
 
+☑️ 오류
+- syntax error : 문법을 지키지 않아 생기는 오류
+  - 예) `Syntax error: SELECT list must not be empty at [9:1]` 
+  - 예) `Number of arguments does not match for aggregate function COUNT` -> count 의 인자수는 1개 여야 함. 
+- 오류메시지가 뜨면, 검색 후 오류 수정하면 돼~ (빨간줄 그어진 부분 중심으로 봐바)
 
 
 ## 4-2. 데이터 타입과 데이터 변환(CAST, SAFE_CAST)
