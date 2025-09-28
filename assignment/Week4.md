@@ -71,8 +71,23 @@
 * 데이터 타입을 변환하는 방법을 설명할 수 있다. 
 ~~~
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
+### 데이터 변환
+☑️ 데이터 타입
+- 숫자 : 실수
+- 문자 : "나"
+- 시간, 날짜 : 2024-01-01
+- 부울(bool) : 참/거짓
+  - 보이는 것과 저장된 것의 차이가 존재하기 때문에 데이터 타입에 대해 잘 알아야 함. 
 
+## ☑️ `CAST`
+- 자료 타입 변경하는 함수
+- `cast(1 as string)`
+## ☑️ `SAFE_CAST`
+- 변환이 실패할 경우 NULL 반환
+- `cast("함수" as int64)` -> `NULL`
+- `SAFE_DIVIDE`로도 쓸 수 있다!
+## ☑️ 수학함수 _ 암기 할 필요 없음
+![alt text](image.png)
 
 
 ## 4-3. 문자열 함수(CONCAT, SPLIT, REPLACE, TRIM, UPPER)
@@ -82,8 +97,41 @@
 * 문자열 함수들의 종류를 이해하고 어떠한 상황에서 사용하는지 설명할 수 있다. 
 ~~~
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
+## ☑️ `CONCAT` : 문자열 붙이기
+- 인자로 string 이나 숫자를 넣을 땐 데이터를 직접 넣어준 것임 -> `FROM` 없어도 실행가능
+```sql
+select
+  concat("안녕", "하세요") as result
+```
 
+## ☑️ `SPLIT` : 문자열 분리하기
+- `split(문자열원본, 나눌 기준이 되는 문자)`
+```sql
+select
+  split("가,나,다,라", ",") as result;
+```
+- 결과는 배열!
+
+## ☑️ `REPLACE`: 특정 단어 수정하기
+- `replace(문자열원본, 찾을 단어, 바꿀 단어)`
+```sql
+select
+  replace("안녕하세요", "안녕","실천") as result
+```
+
+## ☑️ `TRIM`: 문자열 자르기
+- `trim(문자열원본, 자를 단어)`
+```sql
+select
+  trim("안녕하세요", "안녕") as result
+```
+
+## ☑️ `UPPER`: 소문자를 대문자로 변경
+- `upper(문자열원본)`
+```sql
+select
+  upper("abc") as result
+```
 
 
 ## 4-4. 날짜 및 시간 데이터 이해하기(1) (타임존, UTC, Millisecond, TIMESTAMP/DATETIME)
@@ -95,8 +143,64 @@
 * 시간함수들의 종류와 시간의 차이를 추출하는 방법을 설명할 수 있다. 
 ~~~
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
+## 시간 데이터 타입
+☑️ DATE : 2025-09-29 과 같이 date만 표시하는 데이터
 
+☑️ DATETIME : 2025-09-29 12:14:00 <- time zone 정보 없음
+
+☑️ TIME : 12:14:00 날짜와 무관하게 시간만 표시
+
+
+## ☑️ 타임존
+- GMT(greenwich mean time)
+  - 영국 근처에서 자주 활용
+  - 한국시간 : GMT+9
+
+- **UTC(universal time coordinated)**
+  - 최근에 많이 사용
+  - 타임존이 존재한다 = 특정 지역의 표준 시간대
+  - 한국시간 : UTC+9
+
+- **TIMESTAMP**
+  - UTC부터 경과한 시간
+  - 타임존 정보를 가지고 있음.
+  - 2023-12-31 14:00:00 UTC
+
+
+## ☑️ Millisecond, microsecond
+- millisecond 
+  - 천분의 1초(1,000ms = 1s)
+  - 빠른 반응이 필요한 분야에서 사용
+  - Millisecond -> TIMESTAMP -> DATETIME으로 변경을 많이 함.
+
+- microsecond
+  - 1,000,000초 분의 1
+
+```sql
+select
+  timestamp_millis(1704176819711) as milli_to_timestamp,
+  timestamp_micros(1704176819711000) as micro_to_timestamp,
+  datetime(timestamp_micros(1704176819711000)) as datetime,
+  datetime(timestamp_micros(1704176819711000), 'Asia/Seoul') as datetime_asia
+```
+| 행 | milli_to_timestamp           | micro_to_timestamp           | datetime                  | datetime_asia              |
+|----|------------------------------|------------------------------|---------------------------|----------------------------|
+| 1  | 2024-01-02 06:26:59.711000 UTC | 2024-01-02 06:26:59.711000 UTC | 2024-01-02T06:26:59.711000 | 2024-01-02T15:26:59.711000 |
+|   | timestamp | timestamp | datetime | datetime |
+
+- ‼️**UTC 항상 체크 !!**
+
+
+## ☑️ TIMESTAMP vs DATETIME
+```sql
+select
+  current_timestamp() as timestamp_col,
+  datetime(current_timestamp(), 'Asia/Seoul') as datetime_col
+```
+| timestamp_col                  | datetime_col              |
+|--------------------------------|---------------------------|
+| 2025-09-28 15:34:48.216034 UTC | 2025-09-29T00:34:48.216034 |
+| UTC 라고 나옴 | T 라고 나옴|
 
 
 <br>
@@ -119,7 +223,8 @@
 
 <!-- 문제를 풀기 위하여 로그인이  필요합니다. -->
 
-<!-- 정답을 맞추게 되면, 정답입니다. 라는 칸이 생성되는데 이 부분을 캡처해서 이 주석을 지우시고 첨부해주시면 됩니다. --> 
+![alt text](image-1.png)
+
 
 
 
@@ -149,7 +254,11 @@ WHERE AGE BETWEEN 20 AND 29
 
 
 ~~~
-여기에 답을 작성해주세요!
+Error: Number of arguments does not match for aggregate function COUNT 
+-> count 함수의 인자수는 1개여야한다. 위 커리문에서는 2개가 들어가 있기 때문에 오류가 났다. 
+
+SELECT list expression references column AGE which is neither grouped nor aggregated
+-> select 절에 오는 컬럼들은 group by 절에 포함되거나, 집계함수로 감싸져 있어야 한다. 위 커리문에서는 "GROUP BY AGE" 를 쓰지 않았기 때문에 오류가 났다. 
 ~~~
 
 
