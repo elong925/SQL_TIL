@@ -58,7 +58,67 @@
 * CURRENT_TIME, EXTRACT, DATETIME_TRUNC, PARSE_DATETIME, FROMAT_DATETIME 을 설명할 수 있다. 
 ~~~
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
+# 날짜 및 시간 데이터 
+- 시간 
+   - `created_at`: 언제 이 컬럼이 생성되었는가
+   - `updated_at`: 언제 이 컬럼이 변경되었는가
+   - 'user'가 어떤 행위를 하는 것은 '시간의 흐름'에 따름 
+   - 개발에서의 시간은 일반적인 시간과 개념이 다르기 때문에 잘 이해해야함 
+
+## 핵심
+- 데이터 타입 파악: DATE, DATETIME, TIMESTAMP
+- 알면 좋은 개념: UTC, Millisecond
+- 날짜 및 시간 데이터의 타입 변환
+- 시간 관련 함수(두 시간의 차이, 특정 부분 추출)
+
+## 시간 데이터 
+☑️ DATE : DATE만 표시하는 데이터 (eg. 2025-10-31)
+
+☑️ DATETIME : DATE + TIME 표시하는 데이터, time zone 정보 없음 (eg. 2025-10-31 22:23:00)
+
+☑️ TIME : TIME만 표시하는 데이터 (eg. 22:23:00)
+
+‼️**TIME ZONE**‼️
+- GMT : 그리니치 천문대 기준 시간 (eg. 한국시간 : GMT +9)
+- **UTC**(universal time coordinated): 국제적인 표준 시간, 타임존이 존재한다=특정 지역의 표준 시간대 (eg. 한국시간 : UTC +9)
+- TIMESTAMP : UTC로부터 경과한 시간, timezone 정보 있음.
+
+☑️ Millisecond, microsecond
+- **millisecond**
+  - 천분의 1초(1,000ms = 1s)
+  - 빠른 반응이 필요한 분야에서 사용
+  - Millisecond -> TIMESTAMP -> DATETIME으로 변경을 많이 함.
+
+- microsecond
+  - 1,000,000초 분의 1
+
+```sql
+select
+  timestamp_millis(1704176819711) as milli_to_timestamp,
+  timestamp_micros(1704176819711000) as micro_to_timestamp,
+  datetime(timestamp_micros(1704176819711000)) as datetime,
+  datetime(timestamp_micros(1704176819711000), 'Asia/Seoul') as datetime_asia
+```
+| 행 | milli_to_timestamp           | micro_to_timestamp           | datetime                  | datetime_asia              |
+|----|------------------------------|------------------------------|---------------------------|----------------------------|
+| 1  | 2024-01-02 06:26:59.711000 UTC | 2024-01-02 06:26:59.711000 UTC | 2024-01-02T06:26:59.711000 | 2024-01-02T15:26:59.711000 |
+|   | timestamp | timestamp | datetime | datetime |
+
+- ‼️**UTC 항상 체크 !!**
+
+
+## TIMESTAMP vs DATETIME
+```sql
+select
+  current_timestamp() as timestamp_col,
+  datetime(current_timestamp(), 'Asia/Seoul') as datetime_col
+```
+| timestamp_col                  | datetime_col              |
+|--------------------------------|---------------------------|
+| 2025-09-28 15:34:48.216034 UTC | 2025-09-29T00:34:48.216034 |
+| UTC 라고 나옴 | T 라고 나옴|
+|한국시간-9시간| 한국시간과 동일|
+
 
 
 
