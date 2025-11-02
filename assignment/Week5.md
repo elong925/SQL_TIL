@@ -58,69 +58,116 @@
 * CURRENT_TIME, EXTRACT, DATETIME_TRUNC, PARSE_DATETIME, FROMAT_DATETIME 을 설명할 수 있다. 
 ~~~
 
-# 날짜 및 시간 데이터 
-- 시간 
-   - `created_at`: 언제 이 컬럼이 생성되었는가
-   - `updated_at`: 언제 이 컬럼이 변경되었는가
-   - 'user'가 어떤 행위를 하는 것은 '시간의 흐름'에 따름 
-   - 개발에서의 시간은 일반적인 시간과 개념이 다르기 때문에 잘 이해해야함 
-
-## 핵심
-- 데이터 타입 파악: DATE, DATETIME, TIMESTAMP
-- 알면 좋은 개념: UTC, Millisecond
-- 날짜 및 시간 데이터의 타입 변환
-- 시간 관련 함수(두 시간의 차이, 특정 부분 추출)
-
-## 시간 데이터 
-☑️ DATE : DATE만 표시하는 데이터 (eg. 2025-10-31)
-
-☑️ DATETIME : DATE + TIME 표시하는 데이터, time zone 정보 없음 (eg. 2025-10-31 22:23:00)
-
-☑️ TIME : TIME만 표시하는 데이터 (eg. 22:23:00)
-
-‼️**TIME ZONE**‼️
-- GMT : 그리니치 천문대 기준 시간 (eg. 한국시간 : GMT +9)
-- **UTC**(universal time coordinated): 국제적인 표준 시간, 타임존이 존재한다=특정 지역의 표준 시간대 (eg. 한국시간 : UTC +9)
-- TIMESTAMP : UTC로부터 경과한 시간, timezone 정보 있음.
-
-☑️ Millisecond, microsecond
-- **millisecond**
-  - 천분의 1초(1,000ms = 1s)
-  - 빠른 반응이 필요한 분야에서 사용
-  - Millisecond -> TIMESTAMP -> DATETIME으로 변경을 많이 함.
-
-- microsecond
-  - 1,000,000초 분의 1
+# DATETIME 함수
+## `CURRENT_DATETIME([타임존 정보])` : 현재 DATETIME 출력
 
 ```sql
 select
-  timestamp_millis(1704176819711) as milli_to_timestamp,
-  timestamp_micros(1704176819711000) as micro_to_timestamp,
-  datetime(timestamp_micros(1704176819711000)) as datetime,
-  datetime(timestamp_micros(1704176819711000), 'Asia/Seoul') as datetime_asia
+  current_date() as current_date,
+  current_date("Asia/Seoul") as asia_date,
+  current_datetime() as current_datetime,
+  current_datetime("Asia/Seoul") as current_datetiem_asia;
 ```
-| 행 | milli_to_timestamp           | micro_to_timestamp           | datetime                  | datetime_asia              |
-|----|------------------------------|------------------------------|---------------------------|----------------------------|
-| 1  | 2024-01-02 06:26:59.711000 UTC | 2024-01-02 06:26:59.711000 UTC | 2024-01-02T06:26:59.711000 | 2024-01-02T15:26:59.711000 |
-|   | timestamp | timestamp | datetime | datetime |
+-> 
+| current_date | asia_date  | current_datetime           | current_datetime_asia      |
+|---------------|------------|----------------------------|-----------------------------|
+| 2025-11-02    | 2025-11-02 | 2025-11-02T06:38:52.217709 | 2025-11-02T15:38:52.217709 |
 
-- ‼️**UTC 항상 체크 !!**
+> **주의할 점** 
+>> 타임존 정보를 빼먹으면 회사에서 작업할 때 혼동을 줄 수 있음! 
 
+## `EXTRACT`: DATETIME에서 특정 부분(연도, 일, 월, 초 등)만 추출하고 싶은 경우
+- 일자별 주문, 월별 주문별로 보고 싶을 때 유용!
+- [extract 공식 문서](https://cloud.google.com/bigquery/docs/reference/standard-sql/datetime_functions#extract)
 
-## TIMESTAMP vs DATETIME
+- 요일을 추출하고 싶은 경우
+   - `extract(DAYOFWEEK FROM datetime_col)`: 한 주의 첫날이 일요일인 [1,7]범위의 값 변환
 ```sql
 select
-  current_timestamp() as timestamp_col,
-  datetime(current_timestamp(), 'Asia/Seoul') as datetime_col
+extract(DAYOFWEEK FROM DATETIME "2025-11-02 16:19:00") as day_of_sun;
 ```
-| timestamp_col                  | datetime_col              |
-|--------------------------------|---------------------------|
-| 2025-09-28 15:34:48.216034 UTC | 2025-09-29T00:34:48.216034 |
-| UTC 라고 나옴 | T 라고 나옴|
-|한국시간-9시간| 한국시간과 동일|
+-> 1
+
+## `DATETIME_TRUNC`: date와 hour만 남기고 싶은 경우; 시간 자르기
+- 일자별로 시간대별 수요를 구하고 싶을 때 등 쓰임
+- [datetime_truc 공식문서](https://cloud.google.com/bigquery/docs/reference/standard-sql/datetime_functions#datetime_trunc)
+```sql
+select
+  datetime_trunc(DATETIME "2025-11-02 16:19:00", DAY) as day_truc,
+  datetime_trunc(DATETIME "2025-11-02 16:19:00", MONTH) as month_truc,
+  datetime_trunc(DATETIME "2025-11-02 16:19:00", HOUR) as hour_truc;
+```
+->
+| day_truc             | month_truc           | hour_truc            |
+|-----------------------|----------------------|----------------------|
+| 2025-11-02T00:00:00  | 2025-11-01T00:00:00  | 2025-11-02T16:00:00  |
+
+- 잘린 부분: 시간은 다 0으로 바뀜/날짜는 다 1로 바뀜 => 자른 후 나올 수 있는 제일 작은 값으로 바뀜!
+- 보통 "hour" 자를 때 많이 씀. 
+- 뒤에 나오는 숫자들이 헷갈릴 수 있으니 `extract`와 자유자재로 쓸 것
+
+## `PARSE_DATETIME('문자열의 형태', 'DATETIME 문자열')`: '문자열'의 datetime ->  'DATETIME 타입'
+```sql
+select
+  parse_datetime('%Y-%m-%d %H:%M:%S', '2025-11-02 16:36:12') as parse_dt;
+```
+-> 
+| parse_dt |
+|------------|
+|2025-11-02T16:36:12|
+
+- "parsing한다" = 문자열을 분석해서 알맞은 곳으로 배치한다
+- [형식 참고](https://cloud.google.com/bigquery/docs/reference/standard-sql/format-elements#format_elements_date_time)
 
 
+## `FROMAT_DATETIME` : 'DATETIME 타입' -> '문자열'
+```sql
+select
+  format_datetime("%c", DATETIME "2025-11-02 16:36:12") as formatted;
+```
+->
+| formatted |
+|------------|
+|Sun Nov  2 16:36:12 2025| 
 
+
+## `LAST_DAY`: 마지막 날을 알고 싶은 경우; 자동으로 월의 마지막 값을 계산해서 특정 연산을 할 경우
+```sql
+SELECT
+  LAST_DAY(DATETIME '2025-11-02 15:45:00') AS last_day,
+  LAST_DAY(DATETIME '2025-11-02 15:45:00', MONTH) AS last_day_month,
+  LAST_DAY(DATETIME '2025-11-02 15:45:00', WEEK) AS last_day_week, ##첫날 기준을 일요일로
+  LAST_DAY(DATETIME '2025-11-02 15:45:00', WEEK(SUNDAY)) AS last_day_week_sun, ##첫날 기준을 일요일로
+  LAST_DAY(DATETIME '2025-11-02 15:45:00', WEEK(MONDAY)) AS last_day_week_mon; ##첫날기준을 월요일로
+```
+->
+| last_day | last_day_month | last_day_week | last_day_week_sun | last_day_week_mon |
+|-----------|----------------|---------------|-------------------|-------------------|
+| 2025-11-30 | 2025-11-30 | 2025-11-08 | 2025-11-08 | 2025-11-02 |
+
+- 보통 첫날기준을 일요일로 함. 
+- LAST_DAY 함수는 'month'기준을 많이 씀!
+
+## `DATETIME_DIFF(DT1, DT2, 궁금한 차이)` : 두 datetime의 차이를 알고 싶은 경우
+```sql
+SELECT
+  DATETIME_DIFF(DATETIME '2025-11-02 15:30:00', DATETIME '2025-11-01 15:30:00', DAY) AS diff_days,
+  DATETIME_DIFF(DATETIME '2025-11-02 15:30:00', DATETIME '2025-11-01 15:30:00', HOUR) AS diff_hours,
+  DATETIME_DIFF(DATETIME '2025-11-02 15:30:00', DATETIME '2025-11-01 15:30:00', MINUTE) AS diff_minutes;
+```
+-> 
+| diff_days | diff_hours | diff_minutes |
+| --------- | ---------- | ------------ |
+| 1         | 24         | 1440         |
+
+
+![날짜 및 시간 데이터 정리1](image-2.png)
+![날짜 및 시간 데이터 정리2](image-3.png)
+![날짜 및 시간 데이터 정리3](image-4.png)
+
+**위의 함수들은 DATETIME 뿐만 아니라 TIMESTAMP, DATE에도 적용 가능**
+
+ 
 
 # 4-6. 조건문(CASE WHEN, IF)
 
@@ -140,13 +187,56 @@ select
 * 4-5, 4-7 각각에서 두 문제 이상 (최소 4문제) 푼 내용 정리하기
 ~~~
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
+## 4-5
+### 1번. 트레이너가 포켓몬을 포획한 날짜(catch_date)를 기준으로, 2023년 1월에 포획한 포켓몬의 수를 계산해주세요.
+```sql
+SELECT
+  COUNT(DISTINCT id) AS cnt
+FROM basic.trainer_pokemon
+WHERE
+  EXTRACT(YEAR FROM DATETIME(catch_datetime, "Asia/Seoul")) = 2023 # catch_datetime은 TIMESTAMP로 저장되어 있으므로, DATETIME으로 변경해야 함
+  AND EXTRACT(MONTH FROM DATETIME(catch_datetime, "Asia/Seoul")) = 1
+```
+-> 85
+
+<**주의사항1**>
+- catch_date : DATE 타입
+- catch_datetime : UTC. TIMESTAMP 타입 => 컬럼의 이름은 datetime인데 TIMESTAMP 타입으로 저장되어 있다!
+   - 컬럼 이름만 믿고 바로 쿼리를 작성하면 안 됨! 데이터를 꼭 확인해야해~~
+
+<**🚨주의사항2**>
+- catch_date 가 무슨 기준의 시간/날짜 데이터인지 명시되어있지 않다! 한국시간(kr)? UTC?
+   - catch_date != DATE(DATETIME(catch_datetime, "Asia/Seoul")) => 있다면 catch_date는 사용하기 어려울 수 있다  <- 데이터를 저장하는 부분에서 이슈가 발생한 경우가 있음 
+- 아래 처럼 검증 코드 작성해서 확인!
+```sql
+select
+*
+from(
+select
+  catch_date,
+  date(datetime(catch_datetime, "Asia/Seoul")) as catch_datetime_kr
+from
+  basic.trainer_pokemon
+)
+where
+  catch_date != catch_datetime_kr;
+```
+-> catch_date를 바로 쓸 수 없다! => catch_datetime 컬럼 사용!!
+
+> 요청한 사람 또는 문제를 그대로 볼 경우 틀릴 수 있다. 컬럼을 꼭 파악하고(정의 확인) 쿼리를 작성할 것!!
 
 
+
+
+
+
+
+![인증1](image-6.png)
 
 <br>
 
 <br>
+
 
 ---
 
