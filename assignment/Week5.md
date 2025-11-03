@@ -176,8 +176,51 @@ SELECT
 * 조건문 함수의 기능을 이해하고, 설명할 수 있다. 
 ~~~
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
+# 조건문
+- 특정 조건이 참이면 A, 아니면 B
+- 조건에 따른 분기 처리가 필요한 경우
+- 조건에 따라 다른 값을 표시하고 싶을 때 사용((컬럼값 변환, 등등)
+- 방법: CASE WHEN, IF
+- 사용하는 이유: 특정 카테고리를 **하나로 합치는** 전처리가 필요할 수 있음
+   - 데이터를 저장하는 쪽과 분석하는 쪽이 나뉨.
 
+## CASE WHEN : 여러 조건 있을 경우 사용, 순서 유의
+1. 문법
+```sql
+SELECT CASE 
+   WHEN(조건 1) THEN (조건 1 참일 때 결과)
+   WHEN(조건 2) THEN (조건 2 참일 때 결과) 
+   ELSE (그 외 결과) 
+END AS (새로 만들 컬럼명)
+``` 
+2. 예시: 포켓몬 데이터에서 바위와 땅 타입을 하나로 하면?
+```sql
+SELECT 
+  new_type,
+  COUNT(DISTINCT id) AS cnt
+FROM(
+  SELECT
+    *,
+    CASE
+      WHEN (type1 IN ("Rock","Ground")) OR (type2 IN ("Rock","Ground")) THEN "ROCK&GROUND"
+  ELSE type1
+  END AS new_type
+FROM `basic.pokemon`
+)
+GROUP BY new_type;
+```
+3. 주의할 점 
+- **순서**
+  - row 기준으로 처리됨. 첫째 조건문에서 먼저 걸러짐.
+  - 조건 1, 2 둘 다 해당하면 앞선 순서(조건1)을 따르기 때문에 주의해야됨
+  - 문자열 함수(특정단어추출)에서 이슈가 자주 발생
+
+## IF : 단일 조건일 경우 유용
+1. 문법
+```sql
+SELECT 
+  IF(조건문, true일 때 값, false일 때 값) AS (새로운 컬럼명)
+``` 
 
 
  # 4-5. 시간 데이터 연습문제 & 4-7. 조건문 연습 문제
@@ -225,13 +268,90 @@ where
 
 > 요청한 사람 또는 문제를 그대로 볼 경우 틀릴 수 있다. 컬럼을 꼭 파악하고(정의 확인) 쿼리를 작성할 것!!
 
+### 2번. 배틀이 일어난 시간(battle_datetime)을 기준으로, 오전 6시에서 오후 6시 사이에 일어난 배틀의 수를 계산해주세요.
+
+1. battle_datetime이랑 DATETIME(battle_timestamp, "Asia/Seoul")가 같은지 먼저 점검
+
+방법1) 서브쿼리 <br>
+SELECT * <br>
+FROM( <br>
+SELECT
+  id,
+  battle_datetime,
+  DATETIME(battle_timestamp, "Asia/Seoul") AS battle_timestamp_kr <br>
+FROM basic.battle) <br>
+WHERE battle_datetime != battle_timestamp_kr;
+
+방법2) <span style="color:red">COUNTIF 사용</span> <br>
+SELECT
+  <span style="color:red">COUNTIF</span>(battle_datetime != DATETIME(battle_timestamp, "Asia/Seoul"))
+ AS T  <span style="color:green">#특정조건을 만족하는 셀의 개수</span> <br>
+FROM basic.battle;
+
+<br>
+
+2. 풀이
+
+SELECT COUNT(<span style="color:red">DISTINCT</span>id) as cnt <br>
+FROM basic.battle <br>
+WHERE EXTRACT(HOUR FROM battle_datetime) >= 6 AND EXTRACT(HOUR FROM battle_datetime) < 18 <br>
+
+<span style="color:green">EXTRACT(HOUR FROM battle_datetime) BETWEEN 6 AND 18 <- 반복되는거 깔끔하게 줄이기 위해 </span>
+
+3. 추가문제_ 시간대별로 몇 건이 있는가?
+
+SELECT hour, COUNT(DISTINCT id) AS battle_cnt <br>
+FROM (
+  SELECT
+    *,
+    EXTRACT(HOUR FROM battle_datetime) AS hour
+  FROM basic.battle
+) <br>
+GROUP BY
+  hour <br>
+ORDER BY
+  hour
+
+
+## 4-7
+### 1번. 포켓몬의 'Speed'가 70 이상이면 '빠름', 그렇지 않으면 '느림'으로 표시하는 새로운 컬럼 'Speed_Category'를 만들어 주세요
+1. 풀이
+
+SELECT
+  speed,
+  IF(speed >= 70, '빠름', '느림') AS Speed_Category <br>
+FROM basic.pokemon
+
+2. 확인하면 좋을 것
+- speed에 대한 데이터를 확인하는 것이므로, **speed min/max값을 확인해봄**으로써 데이터 파악하면 좋을듯.
+
+### 3번. 각 포켓몬의 총점(total)을 기준으로, 300 이하면 'Low', 301에서 500 사이면 'Medium', 501 이상이면 'High'로 분류해주세요
+1. 풀이
+SELECT
+  total, <br>
+  CASE
+    WHEN total <= 300 THEN "Low"
+    WHEN total BETWEEN 301 and 500 THEN "Medium"
+  ELSE "High"
+  END AS total_1 <br>
+FROM basic.pokemon
+
+### 5번. 트레이너가 포켓몬을 포획한 날짜(catch_date)가 '2023-01-01' 이후이면 'Recent', 그렇지 않으면 'Old'로 분류해주세요.
+1. 풀이
+SELECT
+  catch_datetime,
+  IF(DATE(catch_datetime, "Asia/Seoul") >= "2023-01-01", "Recent", "Old") AS recent_or_old <br>
+FROM `basic.trainer_pokemon`
+
+2. 헷갈렸던 부분
+- 날짜를 조건으로 걸 때, 그냥 무조건 'date'컬럼으로 하지말고 **time zone 확인**해서 할 것!!!
 
 
 
-
-
+<학습 인증>
 
 ![인증1](image-6.png)
+![인증2](image-7.png)
 
 <br>
 
@@ -267,7 +387,12 @@ where
 <!-- 틀린쿼리에 대한 오류의 원인도 같이 작성해주세요. 문제에서 제공된 login_data 컬럼은 DATE type의 데이터를 가지고 있다고 가정하시면 됩니다. -->
 
 ~~~
-여기에 답을 작성해주세요!
+3번 : DATE type(login_date) 과 STRING type('2021')은 직접 비교가 안 됨! 
+-> EXTRACT(YEAR FROM ~) 함수를 써야 함. 
+
+4번 : '2021-01-01'과 같이 리터럴 타입을 명시해주지 않으면 날짜로 인식하지 않고, 문자열로 인식하게 됨.
+-> BETWEEN DATE '2021-01-01' AND DATE '2021-12-31' 로 수정하여 날짜 리터럴을 명시적으로 써야함. 
+
 ~~~
 
 
@@ -298,7 +423,9 @@ FROM pokemon;
 <!-- 근거와 함께 답을 작성해주세요 -->
 
 ~~~
-여기에 답을 작성해주세요!
+조건문 순서대로 출력값을 정리하면 다음과 같다. 
+Charmander -> Hot, Squirtle -> Cool, Pikachu -> Normal, Bulbasaur -> Normal
+따라서, type_description의 결과가 'Normal'로 출력될 포켓몬은 Pikachu, Bulbasaur 이다!
 ~~~
 
 
