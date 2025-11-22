@@ -54,7 +54,52 @@
 * SQL 쿼리를 가독성 있게 작성할 수 있다. 
 ~~~
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
+### 실수 발생 원인
+- 문법을 잘못 안 경우
+- 데이터를 파악하지 않고 쿼리를 작성한 경우
+    - 컬럼 value에 대한 설명 필요
+- 쿼리가 복잡한 경우
+
+### 가독성 있는 쿼리를 작성해야 하는 이유
+- 다른 사람의 쿼리를 볼 때, 내 쿼리를 다른 사람이 볼 때가 많음
+    - 별도의 설명 없이도 이해할 가능성 존재
+- 쿼리를 변경해야 할 경우, 전체를 바꿨는지 특정부분만 바꿨는지 파악하기 쉬우면 좋음
+
+### 가독성을 챙기기 위한 SQL 스타일 가이드
+- [sql 스타일 가이드](https://www.sqlstyle.guide)
+- [Mozilla(firefox) sql 스타일 가이드](https://docs.telemetry.mozilla.org/concepts/sql_style)
+- "가이드"이므로 꼭 지킬 필요 없음
+
+- 파이썬도 있음 ..
+
+1. 예약어는 대문자로 작성
+- `SELECT, FROM, WHERE, 각종 함수` 등 문법적인 용도로 사용하고 있는 문자들은 대문자로 작성
+
+2. 컬럼 이름은 **snake_case** 로 작성
+- **변수** 설정
+    - CamelCase : 공백없이 낙타등처럼 씀.  (e.g.) userLoginTime, myVariableName
+    - snake_case : '_'로 이어서 씀. (e.g.) user_login_time, my_variable_name
+- 일관성이 중요!
+
+3. 명시적 vs 암시적인 이름
+- Alias 별칭 지을 때 -> 명시적 (e.g.)kor_name -> kr
+- JOIN할 때 테이블 이름 -> 명시적
+- AS를 항상 쓸 것
+
+4. 왼쪽 정렬
+~~~sql
+SELECT
+    col
+FROM table
+WHERE 1=1
+~~~
+
+5. 예약어나 컬럼은 한 줄에 하나식 권장
+- 컬럼은 바로 주석처리할 수 있는 장점이 있음 -> 한 줄에 하나
+
+6. 쉼표는 컬럼 바로 뒤에(?)
+- ![쉼표 앞vs뒤](image-28.png)
+
 
 
 
