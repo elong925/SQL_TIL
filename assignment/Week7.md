@@ -111,8 +111,38 @@ WHERE 1=1
 * WITH문과 파티션을 활용해서도 가독성을 챙길 수 있다. 
 ~~~
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
+### WITH문
+- 필요성
+    - 쿼리를 작성하다보면 반복되는 쿼리를 쓸 일이 생김 -> 쿼리 점점 복잡해지고 가독성⬇️
+- WITH문으로 쿼리를 정의하여 재사용 가능!!
+    - ![with문사용](image.png)
+- WITH문이란?
+    - CTE(common table expression)
+    - SELECT구문에 이름을 정해주는 것과 유사
+    - 쿼리 내에서 반복적으로 사용 가능
+- WITH문 사용 방법
+    - Table로 저장 가능
+    - VIEW(처리 덩어리)로도 저장 가능 <- table보다 느림
+~~~sql
+WITH base AS (
+    SELECT
+        col
+    FROM table
+), (명시적 이름) AS (
+    SELECT
+        col
+    FROM table2
+)
+SELECT
+ 등등
+~~~
 
+### PARTITION Table
+1. 쿼리 성능 향상
+2. 데이터 관리 용이성
+3. 비용 절감
+- ![alt text](image-1.png)
+- ![alt text](image-3.png)
 
 
 ## 6-4. 데이터 결과 검증 정의 
@@ -123,9 +153,28 @@ WHERE 1=1
 * 데이터 결과 검증에 대한 예시를 이해할 수 있다.  
 ~~~
 
-<!-- 새롭게 배운 내용을 자유롭게 정리해주세요.-->
+### 데이터 결과 검증(Data Result Validation)
+- SQL쿼리 후 얻은 결과과 예상과 일치하는지 확인하는 과정
+- 목적: 분석 결과의 정확성, 신뢰성 확보
+- 방법
+    - 1. 예상 결과를 **구체적으로** 정의 (문제 정의)
+    - 2. 쿼리 작성
+    - 3. 두 개가 일치하는지 비교
+- 대표적으로 활용하는 문법
+    - COUNT(*) : 행 수 확인
+    - NOT NULL : 데이터가 잘 저장되어 있는지 확인
+    - DISTINCT : 중복 여부 확인 
+        - SELECT COUNT(DISTINCT col), COUNT(col) : 두 개 비교
+    - IF, CASE WHEN : 의도랑 같으면 TRUE, 다르면 FALSE
+    
+- 활용 방식
+1. 특정 user_id 로 필터 걸어서 확인
+- 결과 예상할 때 raw 데이터에서 직접 세서 비교하기
+- 3~4개에서 동일한 결과가 나오는지 확인
 
-
+2. 샘플 데이터 생성하기
+- 복잡한 데이터에서 하기 전에, 쉬운 데이터에서 쿼리가 올바른지 확인
+- `UNION ALL` 사용
 
 
 
@@ -142,15 +191,18 @@ WHERE 1=1
 https://school.programmers.co.kr/learn/courses/30/lessons/157343
 
 > 특정 옵션이 포함된 자동차 리스트 구하기
+>> ![alt text](image-4.png)
+
 
 https://school.programmers.co.kr/learn/courses/30/lessons/59044
 
 > 오랜 기간 보호한 동물(1) 
+>> ![alt text](image-5.png)
 
 https://school.programmers.co.kr/learn/courses/30/lessons/59043
 
 > 있었는데요 없었습니다.
-
+>> ![alt text](image-6.png)
 
 
 ## LeetCode 문제
@@ -158,10 +210,12 @@ https://school.programmers.co.kr/learn/courses/30/lessons/59043
 https://leetcode.com/problems/combine-two-tables/description/
 
 > 175. Combine Two Tables
+>> ![alt text](image-7.png)
 
 https://leetcode.com/problems/list-the-products-ordered-in-a-period/
 
 > 1327. List the Products Ordered in a Period
+>> ![alt text](image-8.png)
 
 
 
@@ -188,8 +242,26 @@ where u.region= 'Busan'			order by o.OrderID
 
 
 
-~~~
-여기에 답을 작성해주세요.
+~~~sql
+SELECT 
+    u.name,
+    o.OrderID,
+    p.ProductName,
+    od.Quantity,
+    od.UnitPrice
+FROM 
+    Users AS u
+JOIN Orders AS o
+ON u.id = o.userID
+
+JOIN OrderDetails AS od 
+ON o.OrderID = od.orderID	
+
+JOIN Products AS p 
+ON od.ProductID = p.ProductID
+
+WHERE u.regoin = 'Busan'
+ORDER BY o.OrderID;
 ~~~
 
 
