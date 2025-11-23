@@ -215,7 +215,8 @@ https://leetcode.com/problems/combine-two-tables/description/
 https://leetcode.com/problems/list-the-products-ordered-in-a-period/
 
 > 1327. List the Products Ordered in a Period
->> ![alt text](image-8.png)
+>> <img width="1886" height="1364" alt="image" src="https://github.com/user-attachments/assets/1c8e1714-f07e-4d7f-8b0f-d58c914615a3" />
+
 
 
 
