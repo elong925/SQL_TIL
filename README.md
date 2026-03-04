@@ -1,2 +1,2 @@
 # SQL_TIL
-SQL 과제
+SQL
